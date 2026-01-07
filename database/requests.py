@@ -1,5 +1,5 @@
 from database.models import async_session
-from database.models import User, Lk_link, Home_work, Know_Base, Analitik_link
+from database.models import User
 from sqlalchemy import select, update, delete
 from datetime import datetime
 
