@@ -1,5 +1,5 @@
 from database.models import async_session
-from database.models import User
+from database.models import User, Jobs
 from sqlalchemy import select, update, delete
 from datetime import datetime
 
@@ -9,8 +9,10 @@ async def set_user(telegram_id, username):
         user = await session.scalar(select(User).where(User.tg_id == telegram_id))
 
         if not user:
-            session.add(User(tg_id=telegram_id, admin=False, username=username, name_student="Не зарестрирован", prob_zanatia=False, time_start=start_data, main_admin = False, reg_user_lk = False, reg_user_lk_id_crm = "Не зарестрирован", phone = "Не зарестрирован"))
-
+            session.add(User(tg_id=telegram_id, username=username, isAdmin=False,
+                            vakansion=None, name_surname=None,
+                            number=None, city=None, citizenship=None, 
+                            birthday=None, chatHistory=None))
             await session.commit()
         
 async def set_prob_zanatia(telegram_id):
@@ -55,3 +57,26 @@ async def get_all_finder_user(phone): # Функция которая возвр
         result = await session.scalars(select(User).where(User.phone.contains(phone)))
         return result.all()
 
+
+async def get_data_all_vacant():
+    async with async_session() as session:
+        res =  await session.execute(select(Jobs))
+        return res.scalars().all()
+
+async def get_data_one_job(id):
+    async with async_session() as session:
+        return await session.scalar(select(Jobs).where(Jobs.id == id))
+
+async def get_data_one_job_by_link(link):
+    async with async_session() as session:
+        return await session.scalar(select(Jobs).where(Jobs.link == link))
+    
+async def set_job(name, description, link, jobType, second_descript = False):
+    async with async_session() as session:
+        if jobType == "3":
+            session.add(Jobs(name = name, jobType = jobType, description = description,
+                             secondDescription = second_descript, link = link))
+        if jobType == "2" or jobType == "1":
+            session.add(Jobs(name = name, jobType = jobType, description = description,
+                             link = link))
+        await session.commit()
