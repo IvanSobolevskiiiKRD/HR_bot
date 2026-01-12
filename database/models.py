@@ -33,6 +33,7 @@ class Jobs(Base):
     description: Mapped[str] = mapped_column()
     secondDescription: Mapped[str] = mapped_column(nullable=True)
     link: Mapped[str] = mapped_column()
+    photo: Mapped[str] = mapped_column(nullable=True)
 
 
 async def async_main():

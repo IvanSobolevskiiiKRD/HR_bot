@@ -54,7 +54,12 @@ async def redact_data_user(tg_id, col, new_data):
 
 async def get_all_finder_user(phone): # Функция которая возвращает объекты из БД в которой нашелся соответсвующий номер телефона
     async with async_session() as session:
-        result = await session.scalars(select(User).where(User.phone.contains(phone)))
+        result = await session.scalars(select(User).where(User.number.contains(phone)))
+        return result.all()
+
+async def get_all_finder_user_by_username(username): # Функция которая возвращает объекты из БД в которой нашелся соответсвующий номер телефона
+    async with async_session() as session:
+        result = await session.scalars(select(User).where(User.username.contains(username)))
         return result.all()
 
 
@@ -71,12 +76,12 @@ async def get_data_one_job_by_link(link):
     async with async_session() as session:
         return await session.scalar(select(Jobs).where(Jobs.link == link))
     
-async def set_job(name, description, link, jobType, second_descript = False):
+async def set_job(name, description, link, jobType, photo, second_descript = False):
     async with async_session() as session:
         if jobType == "3":
             session.add(Jobs(name = name, jobType = jobType, description = description,
                              secondDescription = second_descript, link = link))
         if jobType == "2" or jobType == "1":
             session.add(Jobs(name = name, jobType = jobType, description = description,
-                             link = link))
+                             link = link, photo = photo))
         await session.commit()

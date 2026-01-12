@@ -14,6 +14,27 @@ from main import bot, main_admin
 
 router = Router()
 
+async def generete_history_message(data_user, new_message, status_Admin):
+    data_now = datetime.now()
+    time_text = data_now.strftime("%Y.%m.%d %H:%M")
+
+    chat_history = data_user["chatHistory"]
+    if chat_history == None:
+        start_text = ""
+        chat_history = ""
+    else:
+        start_text = "\n\n"
+    
+    if status_Admin:
+        status_user = "Администратор"
+    else:
+        status_user = "Кандидат"
+
+    form_itog = f"""{time_text} | {status_user}:
+<blockquote>{new_message}</blockquote>
+"""
+    text_itog = chat_history + start_text + form_itog
+    return text_itog
 
 
 class Forms_for_jobType1(StatesGroup):
@@ -28,28 +49,6 @@ class Forms_for_jobType2(StatesGroup):
 
 class Write_admin(StatesGroup):
     message = State()
-
-async def generete_history_message(data_user, new_message):
-    data_now = datetime.now()
-    time_text = data_now.strftime("%Y.%m.%d %H:%M")
-
-    chat_history = data_user["chatHistory"]
-    if chat_history == None:
-        start_text = ""
-        chat_history = ""
-    else:
-        start_text = "\n\n"
-    
-    if data_user["isAdmin"]:
-        status_user = "Администратор"
-    else:
-        status_user = "Кандидат"
-
-    form_itog = f"""{time_text} | {status_user}:
-<blockquote>{new_message}</blockquote>
-"""
-    text_itog = chat_history + start_text + form_itog
-    return text_itog
 
 
 #ГЛАВНОЕ МЕНЮ НАЧАЛО
@@ -75,13 +74,21 @@ async def start(message: Message, command: CommandObject, state: FSMContext):
 
         data_vakan = data_vakan.__dict__
         await rq.redact_data_user(message.from_user.id, "vakansion", data_vakan["id"])
-        if data_vakan["jobType"] == 3:
-            await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
-        if data_vakan["jobType"] == 2:
-            await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
-        if data_vakan["jobType"] == 1:
-            await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
-        return
+        if data_vakan["photo"]:
+            if data_vakan["jobType"] == 3:
+                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+            if data_vakan["jobType"] == 2:
+                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+            if data_vakan["jobType"] == 1:
+                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+        else:
+            if data_vakan["jobType"] == 3:
+                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+            if data_vakan["jobType"] == 2:
+                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+            if data_vakan["jobType"] == 1:
+                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+            return
     
     jobs_list = await rq.get_data_all_vacant()
     await message.answer(text=text.start_message, reply_markup=await start_kb.gen_kb_start(jobs_list))
@@ -93,12 +100,20 @@ async def vakan(callback: CallbackQuery, state: FSMContext):
     await rq.redact_data_user(callback.from_user.id, "vakansion", vakan_id)
     data_vakan = await rq.get_data_one_job(int(vakan_id))
     data_vakan = data_vakan.__dict__
-    if data_vakan["jobType"] == 3:
-        await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
-    if data_vakan["jobType"] == 2:
-        await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
-    if data_vakan["jobType"] == 1:
-        await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+    if data_vakan["photo"]:
+        if data_vakan["jobType"] == 3:
+            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+        if data_vakan["jobType"] == 2:
+            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+        if data_vakan["jobType"] == 1:
+            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+    else:
+        if data_vakan["jobType"] == 3:
+            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+        if data_vakan["jobType"] == 2:
+            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+        if data_vakan["jobType"] == 1:
+            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
         
 
 @router.callback_query(F.data == "write_administrator")
@@ -130,7 +145,7 @@ async def have_phNumb(message: Message, state: FSMContext):
     data_all_user = await rq.get_data_all_user()
     data_user = await rq.get_data_one_user(message.from_user.id)
     data_user = data_user.__dict__
-    chat_history = await generete_history_message(data_user, message.text)
+    chat_history = await generete_history_message(data_user, message.text, False)
     await rq.redact_data_user(message.from_user.id, "chatHistory", chat_history)
 
     for user in data_all_user:
@@ -191,7 +206,7 @@ async def have_phNumb(message: Message):
     data_all_user = await rq.get_data_all_user()
     data_user = await rq.get_data_one_user(message.from_user.id)
     data_user = data_user.__dict__
-    chat_history = await generete_history_message(data_user, message.text)
+    chat_history = await generete_history_message(data_user, message.text, False)
     await rq.redact_data_user(message.from_user.id, "chatHistory", chat_history)
 
     for user in data_all_user:
