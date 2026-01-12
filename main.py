@@ -6,7 +6,7 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-main_admin = "816427281"
+main_admin = "1996046041"
 from handlers import start_handlers, admin_handlers
 
 
