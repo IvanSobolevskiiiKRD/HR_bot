@@ -81,6 +81,7 @@ async def start(message: Message, command: CommandObject, state: FSMContext):
                 await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
             if data_vakan["jobType"] == 1:
                 await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+            return
         else:
             if data_vakan["jobType"] == 3:
                 await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
@@ -165,6 +166,43 @@ async def have_phNumb(message: Message, state: FSMContext):
     await message.answer(text.success_send_to_admin)
     await state.clear()
 
+@router.message(Forms_for_jobType2.number)
+async def have_phNumb(message: Message, state: FSMContext):
+    await rq.redact_data_user(message.from_user.id, "number", message.text)
+    info_user = await rq.get_data_one_user(message.from_user.id)
+    info_user = info_user.__dict__
+    data_vakan = await rq.get_data_one_job(info_user["vakansion"])
+    data_vakan = data_vakan.__dict__
+    if info_user["name_surname"]:
+        name_surname = info_user["name_surname"]
+    else:
+        name_surname = "Не указано"
+    
+    if info_user["number"]:
+        number = info_user["number"]
+    else:
+        number = "Не указано"
+
+    if info_user["city"]:
+        city = info_user["city"]
+    else:
+        city = "Не указано"
+
+    if info_user["citizenship"]:
+        citizenship = info_user["citizenship"]
+    else:
+        citizenship = "Не указано"
+
+    if info_user["birthday"]:
+        birthday = info_user["birthday"]
+    else:
+        birthday = "Не указано"
+    await bot.send_message(main_admin, text.new_kandidat.format(message.from_user.username, name_surname,
+                                                                number, city, citizenship, birthday,
+                                                                data_vakan["name"]))
+    await message.answer(text=data_vakan["secondDescription"], reply_markup=start_kb.write_administrator)
+    await state.clear()
+
 @router.message(Forms_for_jobType1.number)
 async def have_phNumb(message: Message, state: FSMContext):
     await state.update_data(number = message.text)
@@ -199,6 +237,13 @@ async def have_phNumb(message: Message, state: FSMContext):
     await rq.redact_data_user(message.from_user.id, "citizenship", old_data_states["citizenship"])
     await rq.redact_data_user(message.from_user.id, "birthday", old_data_states["birthday"])
     await message.answer(text=text.end_text, reply_markup=start_kb.write_administrator)
+    data_user = await rq.get_data_one_user(message.from_user.id)
+    data_user = data_user.__dict__
+    data_vakan = (await rq.get_data_one_job(data_user["vakansion"])).__dict__
+    await bot.send_message(main_admin, text.new_kandidat.format(message.from_user.username, old_data_states["name_surname"],
+                                                                old_data_states["number"], old_data_states["city"],
+                                                                 old_data_states["citizenship"], old_data_states["birthday"],
+                                                                 data_vakan["name"]))
     await state.clear()
 
 @router.message(F.text)
@@ -219,6 +264,14 @@ async def have_phNumb(message: Message):
                 number = user.number
             else:
                 number = "Не указано"
+            
             await bot.send_message(user.tg_id, text=text.form_answer_to_admin.format(
                 name, number, message.from_user.username, message.html_text
             ), reply_markup=await start_kb.gen_admin_answer_kb(message.from_user.id))
+
+@router.message(F.voice)
+@router.message(F.document)
+@router.message(F.photo)
+@router.message(F.video)
+async def react_to_not_corrent_data(message: Message):
+    await message.answer(text.not_correct_data)

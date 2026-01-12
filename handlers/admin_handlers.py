@@ -204,7 +204,7 @@ async def start(callback: CallbackQuery, state: FSMContext):
         data_user = (await rq.get_data_one_user(user_id)).__dict__
         await callback.message.answer(text.history_generate_text.format(data_user["chatHistory"]), reply_markup=await admin_kb.gen_history_kb(data_user["tg_id"]))
 
-@router.callback_query(F.data.contains("skip_send_photo:"))
+@router.callback_query(F.data == "skip_send_photo")
 async def start(callback: CallbackQuery, state: FSMContext):
     user_data = await rq.get_data_one_user(callback.from_user.id)
     user_data = user_data.__dict__
@@ -292,7 +292,7 @@ async def have_phNumb(message: Message, state: FSMContext):
     if user_data["isAdmin"]:
         await state.update_data(descript = message.text)
         data_state = await state.get_data()
-        if data_state["job_type"] == "3":
+        if data_state["job_type"] == "3" or data_state["job_type"] == "2":
             await state.set_state(data_new_vakans.second_descript)
             await message.answer(text.write_second_descript, reply_markup=admin_kb.back_admin)
             return

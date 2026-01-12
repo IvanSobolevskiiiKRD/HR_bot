@@ -38,10 +38,6 @@ async def get_data_one_user(telegram_id):
     async with async_session() as session:
         return await session.scalar(select(User).where(User.tg_id == telegram_id))
     
-async def get_data_one_user_by_crm(crm_id):
-    async with async_session() as session:
-        return await session.scalar(select(User).where(User.reg_user_lk_id_crm == crm_id))
-    
 async def get_data_one_user_by_id_user(user_id):
     async with async_session() as session:
         return await session.scalar(select(User).where(User.id == user_id))
@@ -78,10 +74,10 @@ async def get_data_one_job_by_link(link):
     
 async def set_job(name, description, link, jobType, photo, second_descript = False):
     async with async_session() as session:
-        if jobType == "3":
+        if jobType == "3" or jobType == "2":
             session.add(Jobs(name = name, jobType = jobType, description = description,
-                             secondDescription = second_descript, link = link))
-        if jobType == "2" or jobType == "1":
+                             secondDescription = second_descript, link = link, photo = photo))
+        if jobType == "1":
             session.add(Jobs(name = name, jobType = jobType, description = description,
                              link = link, photo = photo))
         await session.commit()
