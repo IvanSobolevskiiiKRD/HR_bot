@@ -312,5 +312,5 @@ async def have_phNumb(message: Message, state: FSMContext):
         link_vakan = await get_random_link()
         await rq.set_job(name = data_state["name"], jobType = data_state["job_type"], description = data_state["descript"],
                          link = link_vakan, photo=data_state["photo"], second_descript= data_state["second_descript"])
-        await message.answer(text.new_vakan.format(f"http://t.me/Test_Moroz12333_bot?start=vak_{link_vakan}"))
+        await message.answer(text.new_vakan.format(f"http://t.me/{name_bot}?start=vak_{link_vakan}"))
         await state.clear()
