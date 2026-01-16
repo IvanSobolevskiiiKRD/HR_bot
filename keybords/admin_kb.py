@@ -5,7 +5,9 @@ import math
 
 main_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='📋 Создать вакансию', callback_data="create_vakan")],
-    [InlineKeyboardButton(text='🔍 Найти пользователя', callback_data="find_user")]
+    [InlineKeyboardButton(text='🔍 Найти пользователя', callback_data="find_user")],
+    [InlineKeyboardButton(text='📋 Посмотреть все вакансии', callback_data="list_vakan")],
+    [InlineKeyboardButton(text='📋 Удалить вакансию', callback_data="del_vakan")]
 ])
 
 

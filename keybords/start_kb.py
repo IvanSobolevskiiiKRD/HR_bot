@@ -48,3 +48,8 @@ apply_form_for_jB3 = InlineKeyboardMarkup(inline_keyboard=[
 write_administrator = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='📩 Написать администратору', callback_data="write_administrator")]
 ])
+
+async def gen_kb_type_3(url):
+    key_board = InlineKeyboardBuilder()
+    key_board.row(InlineKeyboardButton(text="✍️ ЗАПОЛНИТЬ АНКЕТУ", url=url))
+    return key_board.as_markup()

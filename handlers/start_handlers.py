@@ -54,6 +54,15 @@ class Write_admin(StatesGroup):
 #ГЛАВНОЕ МЕНЮ НАЧАЛО
 @router.message(CommandStart())
 async def start(message: Message, command: CommandObject, state: FSMContext):
+    try:
+        if message.from_user.username:
+            pass
+        else:
+            await message.answer("Перед стартом работы пожалуйста укажите в настройках вашего аккаунта Юзернейм")
+            return
+    except:
+        await message.answer("Перед стартом работы пожалуйста укажите в настройках вашего аккаунта Юзернейм")
+        return
     await state.clear()
     await rq.set_user(message.from_user.id, message.from_user.username)
     data_user = await rq.get_data_one_user(message.from_user.id)
@@ -76,15 +85,74 @@ async def start(message: Message, command: CommandObject, state: FSMContext):
         await rq.redact_data_user(message.from_user.id, "vakansion", data_vakan["id"])
         if data_vakan["photo"]:
             if data_vakan["jobType"] == 3:
-                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+                await message.answer_photo(photo=data_vakan["photo"])
+                await message.answer(text=data_vakan["description"], reply_markup=await start_kb.gen_kb_type_3(data_vakan["secondDescription"]))
+                info_user = data_user
+                if info_user["name_surname"]:
+                    name_surname = info_user["name_surname"]
+                else:
+                    name_surname = "Не указано"
+
+                if info_user["number"]:
+                    number = info_user["number"]
+                else:
+                    number = "Не указано"
+
+                if info_user["city"]:
+                    city = info_user["city"]
+                else:
+                    city = "Не указано"
+
+                if info_user["citizenship"]:
+                    citizenship = info_user["citizenship"]
+                else:
+                    citizenship = "Не указано"
+
+                if info_user["birthday"]:
+                    birthday = info_user["birthday"]
+                else:
+                    birthday = "Не указано"
+                await bot.send_message(main_admin, text.new_kandidat.format(message.from_user.username, name_surname,
+                                                                    number, city, citizenship, birthday,
+                                                                    data_vakan["name"]))
             if data_vakan["jobType"] == 2:
-                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+                await message.answer_photo(photo=data_vakan["photo"])
+                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
             if data_vakan["jobType"] == 1:
-                await message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+                await message.answer_photo(photo=data_vakan["photo"])
+                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
             return
         else:
             if data_vakan["jobType"] == 3:
-                await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+                await message.answer(text=data_vakan["description"], reply_markup=await start_kb.gen_kb_type_3(data_vakan["secondDescription"]))
+                info_user = data_user
+                if info_user["name_surname"]:
+                    name_surname = info_user["name_surname"]
+                else:
+                    name_surname = "Не указано"
+
+                if info_user["number"]:
+                    number = info_user["number"]
+                else:
+                    number = "Не указано"
+
+                if info_user["city"]:
+                    city = info_user["city"]
+                else:
+                    city = "Не указано"
+
+                if info_user["citizenship"]:
+                    citizenship = info_user["citizenship"]
+                else:
+                    citizenship = "Не указано"
+
+                if info_user["birthday"]:
+                    birthday = info_user["birthday"]
+                else:
+                    birthday = "Не указано"
+                await bot.send_message(main_admin, text.new_kandidat.format(message.from_user.username, name_surname,
+                                                                    number, city, citizenship, birthday,
+                                                                    data_vakan["name"]))
             if data_vakan["jobType"] == 2:
                 await message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
             if data_vakan["jobType"] == 1:
@@ -98,19 +166,78 @@ async def start(message: Message, command: CommandObject, state: FSMContext):
 async def vakan(callback: CallbackQuery, state: FSMContext):
     callback_data = callback.data
     _,vakan_id = callback_data.split("_")
+    info_user = await rq.get_data_one_user(callback.from_user.id)
+    info_user = info_user.__dict__
     await rq.redact_data_user(callback.from_user.id, "vakansion", vakan_id)
     data_vakan = await rq.get_data_one_job(int(vakan_id))
     data_vakan = data_vakan.__dict__
     if data_vakan["photo"]:
         if data_vakan["jobType"] == 3:
-            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+            await callback.message.answer_photo(photo=data_vakan["photo"])
+            await callback.message.answer(text=data_vakan["description"], reply_markup=await start_kb.gen_kb_type_3(data_vakan["secondDescription"]))
+            if info_user["name_surname"]:
+                name_surname = info_user["name_surname"]
+            else:
+                name_surname = "Не указано"
+
+            if info_user["number"]:
+                number = info_user["number"]
+            else:
+                number = "Не указано"
+
+            if info_user["city"]:
+                city = info_user["city"]
+            else:
+                city = "Не указано"
+
+            if info_user["citizenship"]:
+                citizenship = info_user["citizenship"]
+            else:
+                citizenship = "Не указано"
+
+            if info_user["birthday"]:
+                birthday = info_user["birthday"]
+            else:
+                birthday = "Не указано"
+            await bot.send_message(main_admin, text.new_kandidat.format(callback.from_user.username, name_surname,
+                                                                number, city, citizenship, birthday,
+                                                                data_vakan["name"]))
         if data_vakan["jobType"] == 2:
-            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
+            await callback.message.answer_photo(photo=data_vakan["photo"])
+            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
         if data_vakan["jobType"] == 1:
-            await callback.message.answer_photo(photo=data_vakan["photo"], caption=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
+            await callback.message.answer_photo(photo=data_vakan["photo"])
+            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB1)
     else:
         if data_vakan["jobType"] == 3:
-            await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB3)
+            await callback.message.answer(text=data_vakan["description"], reply_markup=await start_kb.gen_kb_type_3(data_vakan["secondDescription"]))
+            if info_user["name_surname"]:
+                name_surname = info_user["name_surname"]
+            else:
+                name_surname = "Не указано"
+
+            if info_user["number"]:
+                number = info_user["number"]
+            else:
+                number = "Не указано"
+
+            if info_user["city"]:
+                city = info_user["city"]
+            else:
+                city = "Не указано"
+
+            if info_user["citizenship"]:
+                citizenship = info_user["citizenship"]
+            else:
+                citizenship = "Не указано"
+
+            if info_user["birthday"]:
+                birthday = info_user["birthday"]
+            else:
+                birthday = "Не указано"
+            await bot.send_message(main_admin, text.new_kandidat.format(callback.from_user.username, name_surname,
+                                                                number, city, citizenship, birthday,
+                                                                data_vakan["name"]))
         if data_vakan["jobType"] == 2:
             await callback.message.answer(text=data_vakan["description"], reply_markup=start_kb.apply_form_for_jB2)
         if data_vakan["jobType"] == 1:
@@ -134,11 +261,39 @@ async def vakan(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "jobType3")
 async def vakan(callback: CallbackQuery, state: FSMContext):
-    data_user = await rq.get_data_one_user(callback.from_user.id)
-    data_user = data_user.__dict__
-    data_vakan = await rq.get_data_one_job(data_user["vakansion"])
+    info_user = await rq.get_data_one_user(callback.from_user.id)
+    info_user = info_user.__dict__
+    data_vakan = await rq.get_data_one_job(info_user["vakansion"])
     data_vakan = data_vakan.__dict__
     await callback.message.answer(text=data_vakan["secondDescription"], reply_markup=start_kb.write_administrator)
+
+    if info_user["name_surname"]:
+        name_surname = info_user["name_surname"]
+    else:
+        name_surname = "Не указано"
+    
+    if info_user["number"]:
+        number = info_user["number"]
+    else:
+        number = "Не указано"
+
+    if info_user["city"]:
+        city = info_user["city"]
+    else:
+        city = "Не указано"
+
+    if info_user["citizenship"]:
+        citizenship = info_user["citizenship"]
+    else:
+        citizenship = "Не указано"
+
+    if info_user["birthday"]:
+        birthday = info_user["birthday"]
+    else:
+        birthday = "Не указано"
+    await bot.send_message(main_admin, text.new_kandidat.format(callback.from_user.username, name_surname,
+                                                                number, city, citizenship, birthday,
+                                                                data_vakan["name"]))
 
 
 @router.message(Write_admin.message)

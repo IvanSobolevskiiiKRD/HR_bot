@@ -72,6 +72,11 @@ async def get_data_one_job_by_link(link):
     async with async_session() as session:
         return await session.scalar(select(Jobs).where(Jobs.link == link))
     
+async def delet_one_job(id):
+    async with async_session() as session:
+        await session.execute(delete(Jobs).where(Jobs.id == id))
+        await session.commit()
+    
 async def set_job(name, description, link, jobType, photo, second_descript = False):
     async with async_session() as session:
         if jobType == "3" or jobType == "2":

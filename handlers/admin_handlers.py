@@ -30,6 +30,9 @@ class find_user(StatesGroup):
     username = State()
     phone = State()
 
+class Del_vakan(StatesGroup):
+    url = State()
+
 async def get_random_link():
     data_vakans = await rq.get_data_all_vacant()
     random_vakan_link = random.randint(1000, 10000)
@@ -74,6 +77,7 @@ async def generet_text_info_user(info_user):
     text_itog = text.format_info_abote_user.format(info_user["username"], name_surname, number, city,
                                                    citizenship, birthday, vakan_name)
     return text_itog
+
 
 async def generete_history_message(data_user, new_message, status_Admin):
     data_now = datetime.now()
@@ -213,6 +217,45 @@ async def start(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer(text.answer_deskript_vakan, reply_markup=admin_kb.back_admin)
         await state.set_state(data_new_vakans.descript)
 
+@router.callback_query(F.data == "list_vakan")
+async def start(callback: CallbackQuery, state: FSMContext):
+    user_data = await rq.get_data_one_user(callback.from_user.id)
+    user_data = user_data.__dict__
+    if user_data["isAdmin"]:
+        data_all_vak = await rq.get_data_all_vacant()
+        text_itog = ""
+        for vak in data_all_vak:
+            vak = vak.__dict__
+            name = vak["name"]
+            url = f"http://t.me/{name_bot}?start=vak_{vak["link"]}"
+            text_itog = text_itog + f"{name} - {url}\n\n"
+        await callback.message.answer(text = text.list_admin_vakan.format(text_itog), reply_markup= admin_kb.back_admin)
+
+@router.callback_query(F.data == "del_vakan")
+async def start(callback: CallbackQuery, state: FSMContext):
+    user_data = await rq.get_data_one_user(callback.from_user.id)
+    user_data = user_data.__dict__
+    if user_data["isAdmin"]:
+        await state.set_state(Del_vakan.url)
+        await callback.message.answer(text.write_link_vakan, reply_markup = admin_kb.back_admin)
+
+@router.message(Del_vakan.url)
+async def have_phNumb(message: Message, state: FSMContext):
+    user_data = await rq.get_data_one_user(message.from_user.id)
+    user_data = user_data.__dict__
+    if user_data["isAdmin"]:
+        if "vak_" in message.text:
+            url = (message.text.split("vak_"))[-1]
+            try:
+                data_job = (await rq.get_data_one_job_by_link(url)).__dict__
+                await rq.delet_one_job(data_job["id"])
+                await message.answer(text.success_delit_job.format(data_job["name"]))
+                await state.clear()
+            except:
+                await message.answer(text.not_correct_write_link_job, reply_markup=admin_kb.back_admin)
+        else:
+            await message.answer(text.not_correct_write_link_job, reply_markup=admin_kb.back_admin)
+
 @router.message(find_user.phone)
 async def have_phNumb(message: Message, state: FSMContext):
     user_data = await rq.get_data_one_user(message.from_user.id)
@@ -290,7 +333,7 @@ async def have_phNumb(message: Message, state: FSMContext):
     user_data = await rq.get_data_one_user(message.from_user.id)
     user_data = user_data.__dict__
     if user_data["isAdmin"]:
-        await state.update_data(descript = message.text)
+        await state.update_data(descript = message.html_text)
         data_state = await state.get_data()
         if data_state["job_type"] == "3" or data_state["job_type"] == "2":
             await state.set_state(data_new_vakans.second_descript)
@@ -307,10 +350,10 @@ async def have_phNumb(message: Message, state: FSMContext):
     user_data = await rq.get_data_one_user(message.from_user.id)
     user_data = user_data.__dict__
     if user_data["isAdmin"]:
-        await state.update_data(second_descript = message.text)
+        await state.update_data(second_descript = message.html_text)
         data_state = await state.get_data()
         link_vakan = await get_random_link()
         await rq.set_job(name = data_state["name"], jobType = data_state["job_type"], description = data_state["descript"],
                          link = link_vakan, photo=data_state["photo"], second_descript= data_state["second_descript"])
-        await message.answer(text.new_vakan.format(f"http://t.me/Test_Moroz12333_bot?start=vak_{link_vakan}"))
+        await message.answer(text.new_vakan.format(f"http://t.me/{name_bot}?start=vak_{link_vakan}"))
         await state.clear()
